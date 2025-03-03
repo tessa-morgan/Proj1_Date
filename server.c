@@ -32,6 +32,8 @@ char ** date_1(long *option)
     static char err2[] = "Error executing command \0";
     static char err3[] = "Failed to run top \0";
     static char s[MAX_LEN];
+    char buffer[MAX_LEN];
+    FILE *fp;
 
     clock = time(0);
     timeptr = localtime(&clock);
@@ -54,8 +56,6 @@ char ** date_1(long *option)
                 break;
 
         case 4: {// CPU Usage
-                FILE *fp;
-                char buffer[MAX_LEN];
 
                 // Run 'top' in batch mode to get CPU usage in a single snapshot
                 fp = popen("top -bn1 | grep 'Cpu(s)'", "r");
@@ -69,12 +69,9 @@ char ** date_1(long *option)
                 if (fgets(buffer, sizeof(buffer), fp) != NULL) {
                         // Extract the CPU usage (idle percentage)
                         double user = 0.0, idle = 0.0, usage = 100.0;
-                        if (sscanf(buffer, "%%Cpu(s):  %f us, %f sy, %f ni, %f id,", &user, &usage, &usage, &idle) == 4) {
-                                usage -= idle; // CPU usage is (100 - idle)
-                                snprintf(s, MAX_LEN, "User CPU Usage: %.2f%%\n Total CPU Usage: %.2f%%\n", user, usage);
-                        } else {
-                                snprintf(s, MAX_LEN, "Error parsing CPU usage data\n");
-                        }
+                        sscanf(buffer, "%%Cpu(s):  %f us, %f sy, %f ni, %f id,", &user, &usage, &usage, &idle);
+                        usage -= idle; // CPU usage is (100 - idle)
+                        snprintf(s, MAX_LEN, "User CPU Usage: %.2f%%\n Total CPU Usage: %.2f%%\n", user, usage);
                         
                         s[MAX_LEN - 1] = '\0';
                 }
@@ -85,8 +82,6 @@ char ** date_1(long *option)
                 break;}
 
         case 5: {// Memory Usage
-                FILE *fp;
-                char buffer[MAX_LEN];
                 double total_mem, free_mem, used_mem, mem_usage = 0.0;
 
                 // Run 'top' and read its output
@@ -101,7 +96,7 @@ char ** date_1(long *option)
                 // Read the line from top output
                 if (fgets(buffer, sizeof(buffer), fp) != NULL) {
                         // Parse the memory values (KiB Mem:  total,  free,  used,  buff/cache)
-                        sscanf(buffer, "MiB Mem : %lf total, %*lf free, %lf used,", &total_mem, &used_mem);
+                        sscanf(buffer, "%*[^:]: %lf total, %*lf free, %lf used,", &total_mem, &used_mem);
                         
                         if (total_mem > 0) {
                                 mem_usage = (used_mem / total_mem) * 100.0;
@@ -115,9 +110,7 @@ char ** date_1(long *option)
 
         case 6: {// Process Count
                 int process_count = 0;
-                FILE *fp;
                 char command[50];
-                char path[100];
 
                 sprintf(command, "ps -e | wc -l");
 
@@ -127,8 +120,8 @@ char ** date_1(long *option)
                         break;
                 }
 
-                if (fgets(path, sizeof(path), fp) != NULL) {
-                        process_count = atoi(path);
+                if (fgets(buffer, sizeof(buffer), fp) != NULL) {
+                        process_count = atoi(buffer);
                         process_count--; 
                 }
 
@@ -140,12 +133,12 @@ char ** date_1(long *option)
                 break;}
         
         case 7: {// Load average
-                FILE *fp;
-                char buffer[MAX_LEN];
                 char cpu_usage[MAX_LEN];
 
                 // Run 'top' in batch mode
                 fp = popen("top -bn1 | grep 'load average'", "r");
+                // Example output: top - 15:18:22 up 1 day, 12:14,  1 user,  load average: 0.35, 1.42, 1.68
+
                 if (fp == NULL) {
                         ptr=err2;
                         break;
