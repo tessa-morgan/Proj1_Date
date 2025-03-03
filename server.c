@@ -54,7 +54,7 @@ char ** date_1(long *option)
                 struct rusage r_usage;
                 getrusage(RUSAGE_SELF,&r_usage);
                 snprintf(s, MAX_LEN, "Memory usage: %ld kilobytes", r_usage.ru_maxrss);
-
+                printf("Memory usage: %ld kilobytes", r_usage.ru_maxrss);
                 ptr=s;
                 break;}
 
