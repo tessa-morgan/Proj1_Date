@@ -59,7 +59,7 @@ char ** date_1(long *option)
 
                 // Run 'top' in batch mode to get CPU usage in a single snapshot
                 fp = popen("top -bn1 | grep 'Cpu(s)'", "r");
-                // Example output: %Cpu(s):  0.7 us,  1.1 sy,  0.1 ni, 98.0 id
+                // Example output: %Cpu(s):  0.3 us,  0.4 sy,  0.0 ni, 99.3 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
                 if (fp == NULL) {
                         ptr=err2;
                         break;
@@ -69,11 +69,13 @@ char ** date_1(long *option)
                 if (fgets(buffer, sizeof(buffer), fp) != NULL) {
                         // Extract the CPU usage (idle percentage)
                         double user = 0.0, idle = 0.0, usage = 100.0;
-                        sscanf(buffer, "Cpu(s): %lf us, %*lf sy, %*lf ni, %lf id,", &user, &idle);
-                        usage -= idle; // CPU usage is (100 - idle)
-
-                        // Format the result as a string
-                        snprintf(s, MAX_LEN, "User CPU Usage: %.2lf%%\n Total CPU Usage: %.2lf%%", user, usage);
+                        if (sscanf(buffer, "%*s %f us, %*f sy, %*f ni, %f id,", &user, &idle) == 2) {
+                                usage -= idle; // CPU usage is (100 - idle)
+                                snprintf(s, MAX_LEN, "User CPU Usage: %.2f%%\n Total CPU Usage: %.2f%%\n", user, usage);
+                        } else {
+                                snprintf(s, MAX_LEN, "Error parsing CPU usage data\n");
+                        }
+                        
                         s[MAX_LEN - 1] = '\0';
                 }
 
@@ -97,7 +99,7 @@ char ** date_1(long *option)
                 // Read the line from top output
                 if (fgets(buffer, sizeof(buffer), fp) != NULL) {
                         // Parse the memory values (KiB Mem:  total,  free,  used,  buff/cache)
-                        sscanf(buffer, "MiB Mem : %lf total, %*lf free, %lf used,", &total_mem, &used_mem);
+                        sscanf(buffer, "%*s %lf total, %*lf free, %lf used,", &total_mem, &used_mem);
                         
                         if (total_mem > 0) {
                                 mem_usage = (used_mem / total_mem) * 100.0;
