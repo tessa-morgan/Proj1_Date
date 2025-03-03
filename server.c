@@ -67,8 +67,8 @@ char ** date_1(long *option)
                         echo $CPU'", "r");
 
                 if (fp == NULL) {
-                        perror("popen() failed");
-                        return 1;
+                        ptr=err2;
+                        break;
                 }
 
                 // Read the output from the pipe into the temporary string
