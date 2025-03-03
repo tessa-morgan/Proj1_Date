@@ -51,21 +51,42 @@ char ** date_1(long *option)
                 break;
 
         case 4: {// CPU Usage
+                ptr=s;
+                break;}
+
+        case 5: {// Memory Usage
                 struct rusage r_usage;
                 getrusage(RUSAGE_SELF,&r_usage);
                 snprintf(s, MAX_LEN, "Memory usage: %ld kilobytes", r_usage.ru_maxrss);
-                printf("Memory usage: %ld kilobytes", r_usage.ru_maxrss);
                 s[MAX_LEN - 1] = '\0';
                 ptr=s;
                 break;}
 
-        case 5: // Memory Usage
-                ptr=s;
-                break;
+        case 6: {// Process Count
+                int process_count = 0;
+                FILE *fp;
+                char command[50];
+                char path[100];
 
-        case 6: // Process Count
+                sprintf(command, "ps -e | wc -l");
+
+                fp = popen(command, "r");
+                if (fp == NULL) {
+                        perror("Error executing command");
+                        return 1;
+                }
+
+                if (fgets(path, sizeof(path), fp) != NULL) {
+                        process_count = atoi(path);
+                        process_count--; 
+                }
+
+                pclose(fp);
+
+                snprintf(s, MAX_LEN, "Number of processes running: %d", process_count);
+                s[MAX_LEN - 1] = '\0';
                 ptr=s;
-                break;
+                break;}
         
         case 7: // Load procs per minute
                 ptr=s;
