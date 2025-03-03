@@ -55,32 +55,27 @@ char ** date_1(long *option)
 
         case 4: {// CPU Usage
                 FILE *fp;
-                char cpu_usage[10];  // Temporary storage for raw CPU usage value
+                char buffer[MAX_LEN];
 
-                // Open a pipe to run the Bash script and capture output
-                fp = popen("bash -c 'read cpu a b c previdle rest < /proc/stat; \
-                        prevtotal=$((a+b+c+previdle)); \
-                        sleep 0.5; \
-                        read cpu a b c idle rest < /proc/stat; \
-                        total=$((a+b+c+idle)); \
-                        CPU=$((100*( (total-prevtotal) - (idle-previdle) ) / (total-prevtotal) )); \
-                        echo $CPU'", "r");
-
+                // Run 'top' in batch mode to get CPU usage in a single snapshot
+                fp = popen("top -bn1 | grep 'Cpu(s)'", "r");
                 if (fp == NULL) {
                         ptr=err2;
                         break;
                 }
 
-                // Read the output from the pipe into the temporary string
-                if (fgets(cpu_usage, sizeof(cpu_usage), fp) != NULL) {
-                        //cpu_usage[strcspn(cpu_usage, "\n")] = '\0';  // Remove trailing newline
-                        snprintf(s, MAX_LEN, "CPU Usage: %s%%\n", cpu_usage);  // Store formatted string in s
+                // Read the output of 'top'
+                if (fgets(buffer, sizeof(buffer), fp) != NULL) {
+                        // Extract the CPU usage (idle percentage)
+                        float idle, usage;
+                        sscanf(buffer, "Cpu(s): %*f us, %*f sy, %*f ni, %f id,", &idle);
+                        usage = 100.0 - idle; // CPU usage is (100 - idle)
+
+                        // Format the result as a string
+                        snprintf(s, MAX_LEN, "CPU Usage: %.2f%%", usage);
                 }
 
-                // Close the pipe
                 pclose(fp);
-
-                //snprintf(s, MAX_LEN, "CPU Usage: %.2f%%\n", cpu_usage);
 
                 ptr=s;
                 break;}
@@ -119,9 +114,29 @@ char ** date_1(long *option)
                 ptr=s;
                 break;}
         
-        case 7: // Load procs per minute
+        case 7: {// Load average
+                FILE *fp;
+                char buffer[MAX_LEN];
+                char cpu_usage[MAX_LEN];
+
+                // Run 'top' in batch mode
+                fp = popen("top -bn1 | grep 'load average'", "r");
+                if (fp == NULL) {
+                        ptr=err2;
+                        break;
+                }
+
+
+                // Read the output and store it in s
+                if (fgets(buffer, sizeof(buffer), fp) != NULL) {
+                        snprintf(s, MAX_LEN, "System Load Average: %s", buffer);
+                } else {
+                        snprintf(s, MAX_LEN, "Error reading output");
+                }
+
+                pclose(fp);
                 ptr=s;
-                break;
+                break; }
 
         default: ptr=err;
                  break;
