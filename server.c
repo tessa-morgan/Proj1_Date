@@ -69,7 +69,7 @@ char ** date_1(long *option)
                 if (fgets(buffer, sizeof(buffer), fp) != NULL) {
                         // Extract the CPU usage (idle percentage)
                         float user, idle, usage;
-                        sscanf(buffer, "Cpu(s): %*f us, %*f sy, %*f ni, %f id,", &user, &usage, &usage, &idle);
+                        sscanf(buffer, "Cpu(s): %f us, %*f sy, %*f ni, %f id,", &user, &idle);
                         usage = 100.0 - idle; // CPU usage is (100 - idle)
 
                         // Format the result as a string
