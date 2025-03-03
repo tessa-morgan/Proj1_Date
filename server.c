@@ -73,6 +73,7 @@ char ** date_1(long *option)
 
                         // Format the result as a string
                         snprintf(s, MAX_LEN, "CPU Usage: %.2f%%", usage);
+                        s[MAX_LEN - 1] = '\0';
                 }
 
                 pclose(fp);
