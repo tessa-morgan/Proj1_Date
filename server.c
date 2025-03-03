@@ -57,7 +57,7 @@ char ** date_1(long *option)
                 printf("Memory usage: %ld kilobytes", r_usage.ru_maxrss);
                 s[MAX_LEN - 1] = '\0';
                 ptr=s;
-                return ptr;}
+                break;}
 
         case 5: // Memory Usage
                 ptr=s;
