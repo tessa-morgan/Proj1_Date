@@ -73,14 +73,14 @@ char ** date_1(long *option)
 
                 // Read the output from the pipe into the temporary string
                 if (fgets(cpu_usage, sizeof(cpu_usage), fp) != NULL) {
-                        cpu_usage[strcspn(cpu_usage, "\n")] = '\0';  // Remove trailing newline
-                        snprintf(s, MAX_LEN, "CPU Usage Stored: %s%%\n", cpu_usage);  // Store formatted string in s
+                        //cpu_usage[strcspn(cpu_usage, "\n")] = '\0';  // Remove trailing newline
+                        snprintf(s, MAX_LEN, "CPU Usage: %s%%\n", cpu_usage);  // Store formatted string in s
                 }
 
                 // Close the pipe
                 pclose(fp);
 
-                snprintf(s, MAX_LEN, "CPU Usage: %.2f%%\n", cpu_usage);
+                //snprintf(s, MAX_LEN, "CPU Usage: %.2f%%\n", cpu_usage);
 
                 ptr=s;
                 break;}
@@ -121,9 +121,6 @@ char ** date_1(long *option)
         
         case 7: // Load procs per minute
                 ptr=s;
-                break;
-
-        case 8: // End
                 break;
 
         default: ptr=err;
