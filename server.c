@@ -59,20 +59,21 @@ char ** date_1(long *option)
 
                 // Run 'top' in batch mode to get CPU usage in a single snapshot
                 fp = popen("top -bn1 | grep 'Cpu(s)'", "r");
+                // Example output: %Cpu(s):  0.7 us,  1.1 sy,  0.1 ni, 98.0 id
                 if (fp == NULL) {
-                        ptr=err3;
+                        ptr=err2;
                         break;
                 }
 
                 // Read the output of 'top'
                 if (fgets(buffer, sizeof(buffer), fp) != NULL) {
                         // Extract the CPU usage (idle percentage)
-                        float idle, usage;
-                        sscanf(buffer, "Cpu(s): %*f us, %*f sy, %*f ni, %f id,", &idle);
+                        float user, idle, usage;
+                        sscanf(buffer, "Cpu(s): %*f us, %*f sy, %*f ni, %f id,", &user, &usage, &usage, &idle);
                         usage = 100.0 - idle; // CPU usage is (100 - idle)
 
                         // Format the result as a string
-                        snprintf(s, MAX_LEN, "CPU Usage: %.2f%%", usage);
+                        snprintf(s, MAX_LEN, "User CPU Usage: %.2f%%\nTotal CPU Usage: %.2f%%", user, usage);
                         s[MAX_LEN - 1] = '\0';
                 }
 
@@ -87,7 +88,7 @@ char ** date_1(long *option)
                 double total_mem, free_mem, used_mem, mem_usage = 0.0;
 
                 // Run 'top' and read its output
-                fp = popen("top -b -n 1 | grep 'MiB Mem'", "r");
+                fp = popen("top -b -n1 | grep 'MiB Mem'", "r");
                 if (fp == NULL) {
                         ptr=err3;
                         break;
