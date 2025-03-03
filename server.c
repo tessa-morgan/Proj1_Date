@@ -50,13 +50,13 @@ char ** date_1(long *option)
                 ptr=s;
                 break;
 
-        case 4: // CPU Usage
+        case 4: {// CPU Usage
                 struct rusage r_usage;
                 getrusage(RUSAGE_SELF,&r_usage);
                 snprintf(s, MAX_LEN, "Memory usage: %ld kilobytes", r_usage.ru_maxrss);
 
                 ptr=s;
-                break;
+                break;}
 
         case 5: // Memory Usage
                 ptr=s;
