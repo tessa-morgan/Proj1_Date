@@ -87,7 +87,7 @@ char ** date_1(long *option)
                 double total_mem, free_mem, used_mem, mem_usage = 0.0;
 
                 // Run 'top' and read its output
-                fp = popen("top -b -n 1 | grep 'KiB Mem'", "r");
+                fp = popen("top -b -n 1 | grep 'MiB Mem'", "r");
                 if (fp == NULL) {
                         ptr=err3;
                         break;
@@ -96,7 +96,7 @@ char ** date_1(long *option)
                 // Read the line from top output
                 if (fgets(buffer, sizeof(buffer), fp) != NULL) {
                         // Parse the memory values (KiB Mem:  total,  free,  used,  buff/cache)
-                        sscanf(s, "KiB Mem : %lf total, %*lf free, %lf used,", &total_mem, &used_mem);
+                        sscanf(buffer, "KiB Mem : %lf total, %*lf free, %lf used,", &total_mem, &used_mem);
                         
                         if (total_mem > 0) {
                                 mem_usage = (used_mem / total_mem) * 100.0;
@@ -104,7 +104,7 @@ char ** date_1(long *option)
                 }
 
                 pclose(fp);
-                //snprintf(s, MAX_LEN, "Current Memory Usage: %.2f%%\n", mem_usage);
+                snprintf(s, MAX_LEN, "Current Memory Usage: %.2f%%\n", mem_usage);
                 ptr=s;
                 break;}
 
