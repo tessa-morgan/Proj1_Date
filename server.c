@@ -28,6 +28,7 @@ char ** date_1(long *option)
     time_t clock;       /* Clock value (in secs)          */
     static char *ptr;   /* Return string                  */
     static char err[] = "Invalid Response \0";
+    static char err2[] = "Error executing command \0";
     static char s[MAX_LEN];
 
     clock = time(0);
@@ -72,7 +73,7 @@ char ** date_1(long *option)
 
                 fp = popen(command, "r");
                 if (fp == NULL) {
-                        perror("Error executing command");
+                        ptr=err2;
                         break;
                 }
 
