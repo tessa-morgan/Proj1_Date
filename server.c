@@ -73,7 +73,7 @@ char ** date_1(long *option)
                 fp = popen(command, "r");
                 if (fp == NULL) {
                         perror("Error executing command");
-                        return 1;
+                        break;
                 }
 
                 if (fgets(path, sizeof(path), fp) != NULL) {
