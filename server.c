@@ -15,61 +15,7 @@
 #define MAX_LINE_LEN 256
 #define MAX_STR_LEN 100
 
-/*
- * Helper function to calculate the current CPU usage
- */
-char* get_cpu_usage() {
-    FILE *fp;
-    char line[MAX_LINE_LEN];
-    long user, nice, system, idle, iowait, irq, softirq;
-    long total_cpu_time, total_idle_time;
-    long prev_total_cpu_time = 0, prev_total_idle_time = 0;
-    
-    // Open /proc/stat to get CPU stats
-    fp = fopen("/proc/stat", "r");
-    if (fp == NULL) {
-        perror("Error opening /proc/stat");
-        return NULL;
-    }
-    
-    // Read the first line (total CPU stats)
-    if (fgets(line, sizeof(line), fp) != NULL) {
-        // Extract values from the line
-        if (sscanf(line, "cpu %ld %ld %ld %ld %ld %ld %ld",
-                   &user, &nice, &system, &idle, &iowait, &irq, &softirq) == 7) {
-            total_cpu_time = user + nice + system + idle + iowait + irq + softirq;
-            total_idle_time = idle + iowait;
 
-            // Calculate CPU usage as a percentage
-            long diff_cpu_time = total_cpu_time - prev_total_cpu_time;
-            long diff_idle_time = total_idle_time - prev_total_idle_time;
-            
-            if (diff_cpu_time > 0) {
-                double cpu_usage = 100.0 * (diff_cpu_time - diff_idle_time) / diff_cpu_time;
-
-                // Allocate memory for the result string
-                char* result = (char*)malloc(MAX_STR_LEN * sizeof(char));
-                if (result != NULL) {
-                    // Format the string to return the CPU usage
-                    snprintf(result, MAX_STR_LEN, "CPU Usage: %.2f%%", cpu_usage);
-                    
-                    // Update previous values for the next calculation
-                    prev_total_cpu_time = total_cpu_time;
-                    prev_total_idle_time = total_idle_time;
-
-                    fclose(fp);
-                    return result;
-                } else {
-                    fclose(fp);
-                    return NULL;  // Return NULL if memory allocation fails
-                }
-            }
-        }
-    }
-
-    fclose(fp);
-    return NULL;  // Return NULL if there's an error reading /proc/stat
-}
 
 /*
  * Return the binary date and time.
@@ -81,7 +27,6 @@ char ** date_1(long *option)
     static char *ptr;   /* Return string                  */
     static char err[] = "Invalid Response \0";
     static char s[MAX_LEN];
-    char* cpu_usage;
 
     clock = time(0);
     timeptr = localtime(&clock);
@@ -104,7 +49,11 @@ char ** date_1(long *option)
                 break;
 
         case 4: // CPU Usage
-                ptr = get_cpu_usage();
+                struct rusage r_usage;
+                getrusage(RUSAGE_SELF,&r_usage);
+                snprintf(s, MAX_LEN, "Memory usage: %ld kilobytes", r_usage.ru_maxrss);
+
+                ptr=s;
                 break;
 
         case 5: // Memory Usage
