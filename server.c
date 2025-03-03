@@ -52,6 +52,57 @@ char ** date_1(long *option)
                 break;
 
         case 4: {// CPU Usage
+                FILE *fp;
+                double cpu_usage = 0.0;
+                char line[256];
+                unsigned long long prev_total = 0, prev_idle = 0;
+                unsigned long long total, idle, user, nice, system, iowait, irq, softirq, steal;
+                
+                // Read first line of /proc/stat
+                fp = fopen("/proc/stat", "r");
+                if (fp == NULL) {
+                        ptr = err2;
+                        break;
+                }
+                
+                if (fgets(line, sizeof(line), fp) != NULL) {
+                        sscanf(line, "cpu %llu %llu %llu %llu %llu %llu %llu %llu",
+                        &user, &nice, &system, &idle, &iowait, &irq, &softirq, &steal);
+                        prev_total = user + nice + system + idle + iowait + irq + softirq + steal;
+                        prev_idle = idle;
+                }
+                fclose(fp);
+                
+                // Wait for 1 second
+                sleep(1);
+                
+                // Read the updated CPU stats
+                fp = fopen("/proc/stat", "r");
+                if (fp == NULL) {
+                        perror("Error opening /proc/stat");
+                        return;
+                }
+
+                if (fgets(line, sizeof(line), fp) != NULL) {
+                        sscanf(line, "cpu %llu %llu %llu %llu %llu %llu %llu %llu",
+                        &user, &nice, &system, &idle, &iowait, &irq, &softirq, &steal);
+                        total = user + nice + system + idle + iowait + irq + softirq + steal;
+                }
+                fclose(fp);
+
+                // Calculate deltas
+                unsigned long long total_delta = total - prev_total;
+                unsigned long long idle_delta = idle - prev_idle;
+                
+                // Calculate CPU usage percentage
+                if (total_delta > 0) {
+                        cpu_usage = (double)(total_delta - idle_delta) / total_delta * 100.0;
+                } else {
+                        cpu_usage = 0.0;
+                }
+
+                snprintf(s, MAX_LEN, "CPU Usage: %.2f%%\n", cpu_usage);
+
                 ptr=s;
                 break;}
 
@@ -91,6 +142,9 @@ char ** date_1(long *option)
         
         case 7: // Load procs per minute
                 ptr=s;
+                break;
+
+        case 8: // End
                 break;
 
         default: ptr=err;
