@@ -30,6 +30,7 @@ char ** date_1(long *option)
     static char *ptr;   /* Return string                  */
     static char err[] = "Invalid Response \0";
     static char err2[] = "Error executing command \0";
+    static char err3[] = "Cannot open /proc file \0";
     static char s[MAX_LEN];
 
     clock = time(0);
@@ -53,52 +54,50 @@ char ** date_1(long *option)
                 break;
 
         case 4: {// CPU Usage
+                double cpu_usage;
                 FILE *fp;
-                double cpu_usage = 0.0;
-                char line[256];
-                unsigned long long prev_total = 0, prev_idle = 0;
-                unsigned long long total, idle, user, nice, system, iowait, irq, softirq, steal;
-                
-                // Read first line of /proc/stat
+                unsigned long long user, nice, system, idle, prev_idle, prev_total;
+                unsigned long long total, total_delta, idle_delta;
+                char buffer[256];
+
+                // Read initial CPU stats
                 fp = fopen("/proc/stat", "r");
                 if (fp == NULL) {
-                        ptr = err2;
+                        ptr=err3;
                         break;
                 }
-                
-                if (fgets(line, sizeof(line), fp) != NULL) {
-                        sscanf(line, "cpu %llu %llu %llu %llu %llu %llu %llu %llu",
-                        &user, &nice, &system, &idle, &iowait, &irq, &softirq, &steal);
-                        prev_total = user + nice + system + idle + iowait + irq + softirq + steal;
-                        prev_idle = idle;
+                if (fgets(buffer, sizeof(buffer), fp) != NULL) {
+                        sscanf(buffer, "cpu %llu %llu %llu %llu", &user, &nice, &system, &prev_idle);
                 }
                 fclose(fp);
                 
-                // Wait for 1 second
-                sleep(1);
-                
-                // Read the updated CPU stats
+                prev_total = user + nice + system + prev_idle;
+
+                // Wait for 0.5 seconds
+                usleep(500000);
+
+                // Read CPU stats again
                 fp = fopen("/proc/stat", "r");
                 if (fp == NULL) {
-                        ptr = err2;
+                        ptr=err3;
                         break;
                 }
-
-                if (fgets(line, sizeof(line), fp) != NULL) {
-                        sscanf(line, "cpu %llu %llu %llu %llu %llu %llu %llu %llu",
-                        &user, &nice, &system, &idle, &iowait, &irq, &softirq, &steal);
-                        total = user + nice + system + idle + iowait + irq + softirq + steal;
+                if (fgets(buffer, sizeof(buffer), fp) != NULL) {
+                        sscanf(buffer, "cpu %llu %llu %llu %llu", &user, &nice, &system, &idle);
                 }
                 fclose(fp);
 
-                // Calculate change
-                unsigned long long total_delta = total - prev_total;
-                unsigned long long idle_delta = idle - prev_idle;
-                
-                // Calculate CPU usage percentage
+                total = user + nice + system + idle;
+
+                // Calculate deltas
+                total_delta = total - prev_total;
+                idle_delta = idle - prev_idle;
+
+                // Compute CPU usage
                 if (total_delta > 0) {
-                        cpu_usage = (double)(total_delta - idle_delta) / total_delta * 100.0;
-                } else {
+                        cpu_usage = (100.0 * (total_delta - idle_delta)) / total_delta;
+                } 
+                else {
                         cpu_usage = 0.0;
                 }
 
