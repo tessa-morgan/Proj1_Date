@@ -30,7 +30,7 @@ char ** date_1(long *option)
     static char *ptr;   /* Return string                  */
     static char err[] = "Invalid Response \0";
     static char err2[] = "Error executing command \0";
-    static char err3[] = "Cannot open /proc file \0";
+    static char err3[] = "Failed to run top \0";
     static char s[MAX_LEN];
 
     clock = time(0);
@@ -60,7 +60,7 @@ char ** date_1(long *option)
                 // Run 'top' in batch mode to get CPU usage in a single snapshot
                 fp = popen("top -bn1 | grep 'Cpu(s)'", "r");
                 if (fp == NULL) {
-                        ptr=err2;
+                        ptr=err3;
                         break;
                 }
 
@@ -82,10 +82,28 @@ char ** date_1(long *option)
                 break;}
 
         case 5: {// Memory Usage
-                struct rusage r_usage;
-                getrusage(RUSAGE_SELF,&r_usage);
-                snprintf(s, MAX_LEN, "Memory usage: %ld kilobytes", r_usage.ru_maxrss);
-                s[MAX_LEN - 1] = '\0';
+                FILE *fp;
+                char buffer[MAX_LEN];
+                double total_mem, free_mem, used_mem, mem_usage = 0.0;
+
+                // Run 'top' and read its output
+                fp = popen("top -b -n 1 | grep 'KiB Mem'", "r");
+                if (fp == NULL) {
+                        ptr=err3;
+                        break;
+                }
+
+                // Read the line from top output
+                if (fgets(buffer, sizeof(buffer), fp) != NULL) {
+                        // Parse the memory values (KiB Mem:  total,  free,  used,  buff/cache)
+                        sscanf(buffer, "KiB Mem : %lf total, %*lf free, %lf used,", &total_mem, &used_mem);
+                        if (total_mem > 0) {
+                        mem_usage = (used_mem / total_mem) * 100.0;
+                        }
+                }
+
+                pclose(fp);
+                snprintf(s, MAX_LEN, "Current Memory Usage: %.2f%%\n", mem_usage);
                 ptr=s;
                 break;}
 
@@ -110,7 +128,7 @@ char ** date_1(long *option)
 
                 pclose(fp);
 
-                snprintf(s, MAX_LEN, "Number of processes running: %d", process_count);
+                snprintf(s, MAX_LEN, "Total number of processes running: %d", process_count);
                 s[MAX_LEN - 1] = '\0';
                 ptr=s;
                 break;}
@@ -133,7 +151,7 @@ char ** date_1(long *option)
 
                 // Look for "load average:" and extract the three values
                 if (sscanf(buffer, "%*[^l]load average: %9[^,], %9[^,], %9s", load_avg_1, load_avg_2, load_avg_3) == 3) {
-                        snprintf(s, MAX_LEN, "System Load Average: %s, %s, %s", load_avg_1, load_avg_2, load_avg_3);
+                        snprintf(s, MAX_LEN, "System Load Average (1, 5, and 15 min): %s, %s, %s", load_avg_1, load_avg_2, load_avg_3);
                 } else {
                         snprintf(s, MAX_LEN, "Error: Unable to parse load average.");
                 }
