@@ -69,7 +69,7 @@ char ** date_1(long *option)
                 if (fgets(buffer, sizeof(buffer), fp) != NULL) {
                         // Extract the CPU usage (idle percentage)
                         double user = 0.0, idle = 0.0, usage = 100.0;
-                        if (sscanf(buffer, "%*s %f us, %*f sy, %*f ni, %f id,", &user, &idle) == 2) {
+                        if (sscanf(buffer, "%%Cpu(s):  %f us, %f sy, %f ni, %f id,", &user, &usage, &usage, &idle) == 4) {
                                 usage -= idle; // CPU usage is (100 - idle)
                                 snprintf(s, MAX_LEN, "User CPU Usage: %.2f%%\n Total CPU Usage: %.2f%%\n", user, usage);
                         } else {
@@ -91,6 +91,8 @@ char ** date_1(long *option)
 
                 // Run 'top' and read its output
                 fp = popen("top -b -n1 | grep 'MiB Mem'", "r");
+                // Example output: MiB Mem : 257319.3 total, 234737.0 free,  12937.2 used,   9645.2 buff/cache
+
                 if (fp == NULL) {
                         ptr=err3;
                         break;
@@ -99,7 +101,7 @@ char ** date_1(long *option)
                 // Read the line from top output
                 if (fgets(buffer, sizeof(buffer), fp) != NULL) {
                         // Parse the memory values (KiB Mem:  total,  free,  used,  buff/cache)
-                        sscanf(buffer, "%*s %lf total, %*lf free, %lf used,", &total_mem, &used_mem);
+                        sscanf(buffer, "MiB Mem : %lf total, %*lf free, %lf used,", &total_mem, &used_mem);
                         
                         if (total_mem > 0) {
                                 mem_usage = (used_mem / total_mem) * 100.0;
