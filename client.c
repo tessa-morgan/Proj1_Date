@@ -53,13 +53,18 @@ main(int argc, char **argv)
         exit(2);
     }
     response = get_response();
-    while(response != 4) {
+    while(response != 8) {
         if ((sresult = date_1(lresult, cl)) == NULL) {
             clnt_perror(cl, server);
             exit(3);
         }
-	printf("  %s\n", *sresult);
-	response = get_response();
+        if (response <= 3) {
+            printf("  %s\n", *sresult);
+        } 
+        else if (response == 4) {
+            printf("  %s\n", *sresult);
+        }
+        response = get_response();
     }
     clnt_destroy(cl);		/* done with the handle */
     exit(0);
