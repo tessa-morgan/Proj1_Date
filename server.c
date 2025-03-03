@@ -54,52 +54,31 @@ char ** date_1(long *option)
                 break;
 
         case 4: {// CPU Usage
-                double cpu_usage;
                 FILE *fp;
-                unsigned long long user, nice, system, idle, prev_idle, prev_total;
-                unsigned long long total, total_delta, idle_delta;
-                char buffer[256];
+                char cpu_usage[10];  // Temporary storage for raw CPU usage value
 
-                // Read initial CPU stats
-                fp = fopen("/proc/stat", "r");
+                // Open a pipe to run the Bash script and capture output
+                fp = popen("bash -c 'read cpu a b c previdle rest < /proc/stat; \
+                        prevtotal=$((a+b+c+previdle)); \
+                        sleep 0.5; \
+                        read cpu a b c idle rest < /proc/stat; \
+                        total=$((a+b+c+idle)); \
+                        CPU=$((100*( (total-prevtotal) - (idle-previdle) ) / (total-prevtotal) )); \
+                        echo $CPU'", "r");
+
                 if (fp == NULL) {
-                        ptr=err3;
-                        break;
+                        perror("popen() failed");
+                        return 1;
                 }
-                if (fgets(buffer, sizeof(buffer), fp) != NULL) {
-                        sscanf(buffer, "cpu %llu %llu %llu %llu", &user, &nice, &system, &prev_idle);
+
+                // Read the output from the pipe into the temporary string
+                if (fgets(cpu_usage, sizeof(cpu_usage), fp) != NULL) {
+                        cpu_usage[strcspn(cpu_usage, "\n")] = '\0';  // Remove trailing newline
+                        snprintf(s, MAX_LEN, "CPU Usage Stored: %s%%\n", cpu_usage);  // Store formatted string in s
                 }
-                fclose(fp);
-                
-                prev_total = user + nice + system + prev_idle;
 
-                // Wait for 0.5 seconds
-                usleep(500000);
-
-                // Read CPU stats again
-                fp = fopen("/proc/stat", "r");
-                if (fp == NULL) {
-                        ptr=err3;
-                        break;
-                }
-                if (fgets(buffer, sizeof(buffer), fp) != NULL) {
-                        sscanf(buffer, "cpu %llu %llu %llu %llu", &user, &nice, &system, &idle);
-                }
-                fclose(fp);
-
-                total = user + nice + system + idle;
-
-                // Calculate deltas
-                total_delta = total - prev_total;
-                idle_delta = idle - prev_idle;
-
-                // Compute CPU usage
-                if (total_delta > 0) {
-                        cpu_usage = (100.0 * (total_delta - idle_delta)) / total_delta;
-                } 
-                else {
-                        cpu_usage = 0.0;
-                }
+                // Close the pipe
+                pclose(fp);
 
                 snprintf(s, MAX_LEN, "CPU Usage: %.2f%%\n", cpu_usage);
 
