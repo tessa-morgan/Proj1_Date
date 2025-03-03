@@ -55,8 +55,9 @@ char ** date_1(long *option)
                 getrusage(RUSAGE_SELF,&r_usage);
                 snprintf(s, MAX_LEN, "Memory usage: %ld kilobytes", r_usage.ru_maxrss);
                 printf("Memory usage: %ld kilobytes", r_usage.ru_maxrss);
+                s[MAX_LEN - 1] = '\0';
                 ptr=s;
-                break;}
+                return ptr;}
 
         case 5: // Memory Usage
                 ptr=s;
