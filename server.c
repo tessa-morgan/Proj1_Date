@@ -96,7 +96,7 @@ char ** date_1(long *option)
                 // Read the line from top output
                 if (fgets(buffer, sizeof(buffer), fp) != NULL) {
                         // Parse the memory values (KiB Mem:  total,  free,  used,  buff/cache)
-                        sscanf(buffer, "KiB Mem : %lf total, %*lf free, %lf used,", &total_mem, &used_mem);
+                        sscanf(buffer, "MiB Mem : %lf total, %*lf free, %lf used,", &total_mem, &used_mem);
                         
                         if (total_mem > 0) {
                                 mem_usage = (used_mem / total_mem) * 100.0;
