@@ -56,6 +56,7 @@ main(int argc, char **argv)
     
     while(response < 8) {
         lresult = &response;
+
         if ((sresult = date_1(lresult, cl)) == NULL) {
             clnt_perror(cl, server);
             exit(3);

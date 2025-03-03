@@ -127,13 +127,17 @@ char ** date_1(long *option)
                         break;
                 }
 
-
                 // Read the output and store it in s
                 if (fgets(buffer, sizeof(buffer), fp) != NULL) {
-                        snprintf(s, MAX_LEN, "System Load Average: %s", buffer);
+                        char load_avg_1[10], load_avg_2[10], load_avg_3[10];
+
+                // Look for "load average:" and extract the three values
+                if (sscanf(buffer, "%*[^l]load average: %9[^,], %9[^,], %9s", load_avg_1, load_avg_2, load_avg_3) == 3) {
+                        snprintf(s, MAX_LEN, "System Load Average: %s, %s, %s", load_avg_1, load_avg_2, load_avg_3);
                 } else {
-                        snprintf(s, MAX_LEN, "Error reading output");
+                        snprintf(s, MAX_LEN, "Error: Unable to parse load average.");
                 }
+}
 
                 pclose(fp);
                 ptr=s;
