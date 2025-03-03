@@ -69,9 +69,9 @@ char ** date_1(long *option)
                 if (fgets(buffer, sizeof(buffer), fp) != NULL) {
                         // Extract the CPU usage (idle percentage)
                         double user = 0.0, idle = 0.0, usage = 100.0;
-                        sscanf(buffer, "%*[^:]:  %f us, %*f sy, %*f ni, %f id, %*f wa,  %*f hi,  %*f si,  %*f st", &user, &idle);
+                        sscanf(buffer, "%*[^:]:  %lf us, %*lf sy, %*lf ni, %lf id, %*lf wa,  %*lf hi,  %*lf si,  %*lf st", &user, &idle);
                         usage -= idle; // CPU usage is (100 - idle)
-                        snprintf(s, MAX_LEN, "User CPU Usage: %.2f%%\n Total CPU Usage: %.2f%%\n", user, usage);
+                        snprintf(s, MAX_LEN, "User CPU Usage: %.2lf%%\n Total CPU Usage: %.2lf%%\n", user, usage);
                         
                         s[MAX_LEN - 1] = '\0';
                 }
