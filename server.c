@@ -80,8 +80,8 @@ char ** date_1(long *option)
                 // Read the updated CPU stats
                 fp = fopen("/proc/stat", "r");
                 if (fp == NULL) {
-                        perror("Error opening /proc/stat");
-                        return;
+                        ptr = err2;
+                        break;
                 }
 
                 if (fgets(line, sizeof(line), fp) != NULL) {
