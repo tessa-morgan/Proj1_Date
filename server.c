@@ -110,7 +110,7 @@ char ** date_1(long *option)
                         }
 
                         // Format
-                        snprintf(s, MAX_LEN, "Current Memory Usage: %.2f%%\n", mem_usage);
+                        snprintf(s, MAX_LEN, "Current Memory Usage: %.2f%%", mem_usage);
                 }
 
                 pclose(fp);
