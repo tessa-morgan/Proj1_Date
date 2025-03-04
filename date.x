@@ -10,6 +10,7 @@
 program DATE_PROG {
     version DATE_VERS {
 	string	DATE(long) = 1;     /* procedure number = 1 */ 
+    string	SYSTEM_STATS(long) = 2;     /* procedure number = 1 */ 
     } = 1;			                /* version number = 1     */
 } = 0x31234567;			   /* program number        */
 
