@@ -17,7 +17,7 @@ long get_response()
     printf("-------------------------------------------\n");
     printf("                1. Date\n");
     printf("                2. Time\n");
-    printf("                3. Both\n");
+    printf("                3. Date and Time\n");
     printf("                4. CPU Usage\n");
     printf("                5. Memory Usage\n");
     printf("                6. Process Count\n");
@@ -45,6 +45,7 @@ main(int argc, char **argv)
     }
     server = argv[1];
     lresult = (&response);
+    
     /*
      * Create the client "handle."
      */
